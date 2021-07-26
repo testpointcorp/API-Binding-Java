@@ -23,8 +23,9 @@ Vansah expects the authentication credentials to be provided via standard HTTP b
 
 ## List of the main Endpoints for Automation Testing:
 
+- **add_test_run**: POST API creates a test run Identifier which is then used with the other testing methods: 1) add_test_log 2) remove_test_run 
 
-- **add_test_Log**: POST API adds a new test log linked to the project_identifier and the testcase_key. This is a mandatory call before calling quick_test or quick_test_update. 
+- **add_test_log**: POST API adds a new test log linked to the project_identifier and the testcase_key. This is a mandatory call before calling quick_test or quick_test_update. 
 
 - **quick_test**: POST API adds a new test log sequence linked to the test log created by add_test_log endpoint. By calling this endpoint, you will create a new log entry in Vansah with the respective **overal** result. (0 = N/A, 1= FAIL, 2= PASS, 3 = Not Tested). Quick_test is useful for test cases which there are no steps in the test script, where only the overal result is important. 
 
