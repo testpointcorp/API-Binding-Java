@@ -28,10 +28,10 @@ public class VansahNode {
 	private static final String API_VERSION = "v1";
 
 	/**
-	 * The base URL of the Vansah API. This URL is the entry point for all API requests,
-	 * ensuring that requests are directed to the correct environment and domain.
+	 * The default base URL of the Vansah API.
+	 * Note : For Data Residency support user can now set this URL to their region URL.
 	 */
-	private static final String VANSAH_URL = "https://prod.vansahnode.app";
+	private static String VANSAH_URL = "https://prod.vansahnode.app";
 
 	/**
 	 * The endpoint URL for adding a test run. This URL is constructed by appending the
@@ -72,7 +72,15 @@ public class VansahNode {
 	 */
 	private static final String TEST_SCRIPT = VANSAH_URL + "/api/" + API_VERSION + "/testCase/list/testScripts";
 
-
+	
+	/**
+	 * Sets a custom URL for the Vansah APIs. 
+	 * If a null value is provided, it defaults back to the predefined URL ("https://prod.vansahnode.app").
+	 * @param vansahURL The custom URL for the Vansah APIs.
+	 */
+	public static void setVansahURL(String vansahURL) {
+		VANSAH_URL = vansahURL;
+	}
 	/**
 	 * The authentication token required for making requests to the Vansah API. This token
 	 * authenticates the client to the Vansah system, ensuring secure access to API functions.

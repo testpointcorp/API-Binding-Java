@@ -20,6 +20,7 @@
 
 ## Features
 
+- Set custom API URL and tokens for authentication.
 - Easily connect your Java applications with `Vansah Test Management for Jira` to report test results, and update test runs without manual intervention.
 - Automatically send test results to `Vansah` as they are generated, ensuring that your test management system reflects the most current test outcomes.
 - Attach screenshots to test runs in `Vansah` for more detailed reporting and analysis.
@@ -57,7 +58,7 @@
 			}
 			
 		    ```
-	    - Use Setter functions to add the token.
+	    - Use Setter functions to add the token
 	         ```Java
 	         
 	         
@@ -71,6 +72,11 @@
 	       */
 
 			app.setVansahToken("Add your Token here");
+			
+			/**
+	 			* Sets a custom URL for the Vansah APIs. 
+	 		*/
+			app.setVansahURL("Your Vansah API URL") //Obtain your Vansah Connect URL from Vansah Settings > Vansah API Tokens
 			
 		    ```
 
