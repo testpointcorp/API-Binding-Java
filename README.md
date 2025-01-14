@@ -1,5 +1,5 @@
 <div align="center">
-   <a href="https://vansah.com"><img src="https://vansah.com/wp-content/uploads/2021/07/256x256-3.png" /></a><br>
+   <a href="https://vansah.com"><img src="https://vansah.com/app/logo/vansahjira-logo.svg" /></a><br>
 </div>
 
 <p align="center">The "Vansah API binding for Java" enables seamless integration with Maven, Selenium, Playwright, TestNG, Cucumber and more, while efficiently sending test results to Vansah Test Management for Jira</p>
