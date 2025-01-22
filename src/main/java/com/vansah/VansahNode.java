@@ -183,6 +183,9 @@ public class VansahNode {
 
 	/** The JSON object representing the body of the API request. */
 	private JSONObject requestBody = null;
+	
+	private String plannedTestRunIdentifier;
+	private String actualResult;
 
 
 
@@ -246,6 +249,61 @@ public class VansahNode {
 		this.CASE_KEY = testcase;	    
 		connectToVansahRest("addTestRunFromTestFolder");
 	}
+
+	public void addTestRunFromJIRAIssue(String name, String issueKey, String caseKeys, String startDate, String endDate, String plannedTestRunIdentifier, String actualResult) throws Exception {
+		// Initialize the requestBody
+		JSONObject requestBody = new JSONObject();
+	
+		// Add general details
+		addBasicDetails(requestBody, name, issueKey);
+	
+		// Add case keys if provided
+		if (caseKeys != null && !caseKeys.isEmpty()) {
+			requestBody.put("caseKey", caseKeys);
+		}
+	
+		// Add start and end dates
+		addDateDetails(requestBody, startDate, endDate);
+	
+		// If an existing planned test run is provided, update it instead of creating a new one
+		if (plannedTestRunIdentifier == null || plannedTestRunIdentifier.isEmpty()) {
+			System.out.println("PlannedTestRunIdentifier is null. Adding a new planned test run.");
+			this.requestBody = requestBody; // Pass the requestBody to the instance variable
+			connectToVansahRest("addPlannedTestRun");
+		} else {
+			System.out.println("Updating an existing planned test run with identifier: " + plannedTestRunIdentifier);
+			this.plannedTestRunIdentifier = plannedTestRunIdentifier; // Assign to instance variable
+			this.requestBody = requestBody; // Set requestBody for the update
+			connectToVansahRest("updatePlannedTestRun");
+		}
+	}
+	
+	// Helper method to add basic details
+	private void addBasicDetails(JSONObject requestBody, String name, String issueKey) throws Exception {
+		requestBody.put("name", name);
+		JSONObject asset = new JSONObject();
+		asset.put("type", "issue");
+		asset.put("key", issueKey);
+		requestBody.put("asset", asset);
+	}
+	// Helper method to add date details
+	private void addDateDetails(JSONObject requestBody, String startDate, String endDate) throws Exception {
+		if (startDate != null && !startDate.isEmpty()) {
+			requestBody.put("startDate", startDate);
+		}
+		if (endDate != null && !endDate.isEmpty()) {
+			requestBody.put("endDate", endDate);
+		}
+	}
+	// Helper method to add or update an existing planned test run
+	// private void addExistingPlannedTestRun(JSONObject requestBody, String plannedTestRunIdentifier, String actualResult) throws Exception {
+	// 	requestBody.put("plannedTestRunIdentifier", plannedTestRunIdentifier);
+	// 	if (actualResult != null && !actualResult.isEmpty()) {
+	// 		requestBody.put("actualResult", actualResult);
+	// 	}
+	// 	System.out.println("Updating Test Run with Request Body: " + requestBody.toString());
+	// 	connectToVansahRest("updatePlannedTestRun");
+	// }
 	/**
 	 * Adds a new test log entry for a specific test case. This method is used after creating a test run
 	 * to log individual test results. It requires a test run identifier obtained from a previous test run creation.
@@ -544,6 +602,10 @@ public class VansahNode {
 	 *       class-level settings.
 	 */
 	private void connectToVansahRest(String type) {
+		// Check if requestBody is null
+		if (requestBody == null) {
+			throw new IllegalArgumentException("Request body is null!");
+		}
 
 		//Define Headers here
 		headers.put("Authorization",VANSAH_TOKEN);
@@ -594,13 +656,106 @@ public class VansahNode {
 					if(properties().length()!=0) {
 						requestBody.accumulate("properties", properties());
 					}
-
-
-
 					jsonRequestBody = Unirest.post(ADD_TEST_RUN).headers(headers).body(requestBody).asJson();
 
 				}
+				if (type == "addPlannedTestRun") {
+				// Ensure requestBody is initialized and populated
+				if (requestBody == null || requestBody.length()==0) {
+					requestBody = new JSONObject();
+					// Populate requestBody with required fields for planned test run
+					requestBody.accumulate("name", "Default Test Run Name"); // Replace with dynamic values if available
+					requestBody.accumulate("sprint", properties().get("sprint")); // Example for sprint property
+					requestBody.accumulate("environment", properties().get("environment")); // Example for environment property
+					requestBody.accumulate("release", properties().get("release")); // Example for release property
 
+					// Additional properties if needed
+					if (properties().length() != 0) {
+						requestBody.accumulate("properties", properties());
+					}
+				}
+
+				System.out.println("Sending Request to Endpoint for Planned Test Run: " + VANSAH_URL + "/api/" + API_VERSION + "/plannedTestRun");
+				System.out.println("Headers: " + headers.toString());
+				System.out.println("Request Body: " + requestBody.toString());
+
+				jsonRequestBody = Unirest.post(VANSAH_URL + "/api/" + API_VERSION + "/plannedTestRun")
+						.headers(headers)
+						.body(requestBody)
+						.asJson();
+				}
+
+				if (type.equals("updatePlannedTestRun")) { 
+					if (requestBody == null || requestBody.length() == 0) {
+						requestBody = new JSONObject();
+				
+						// Validate that plannedTestRunIdentifier is not null or empty
+						if (plannedTestRunIdentifier == null || plannedTestRunIdentifier.isEmpty()) {
+							throw new IllegalArgumentException("PlannedTestRunIdentifier cannot be null or empty for updatePlannedTestRun");
+						}
+				
+						// Populate requestBody with required fields for updating a planned test run
+						requestBody.accumulate("plannedTestRunIdentifier", plannedTestRunIdentifier);
+						requestBody.accumulate("actualResult", actualResult); 
+				
+						// Additional properties if needed
+						if (properties().length() != 0) {
+							requestBody.accumulate("properties", properties());
+						}
+				
+						System.out.println("Request Body for updatePlannedTestRun populated: " + requestBody.toString());
+					}
+				
+					System.out.println("Sending Request to Endpoint for Update Planned Test Run: " 
+						+ VANSAH_URL + "/api/" + API_VERSION + "/plannedTestRun/update");
+					System.out.println("Headers: " + headers.toString());
+					System.out.println("Full Request Body: " + requestBody.toString());
+				
+					jsonRequestBody = Unirest.put(VANSAH_URL + "/api/" + API_VERSION + "/plannedTestRun/update")
+							.headers(headers)
+							.body(requestBody)
+							.asJson();
+				
+					// Log API response
+					System.out.println("API Response: " + jsonRequestBody.getBody().toString());
+				}
+				
+				
+				if (type == "addATP") { // Logic for ATP
+					System.out.println("Sending Request to Endpoint: " + ADD_TEST_RUN);
+					System.out.println("Headers: " + headers.toString());
+					System.out.println("Full Request Body: " + requestBody.toString());
+
+					jsonRequestBody = Unirest.post(ADD_TEST_RUN)
+							.headers(headers)
+							.body(requestBody)
+							.asJson();
+
+					// Log the response
+					System.out.println("Response Body: " + jsonRequestBody.getBody().toString());
+
+					JSONObject fullBody = jsonRequestBody.getBody().getObject();
+					if (fullBody == null || !fullBody.has("data") || fullBody.getJSONArray("data").length() == 0) {
+						System.out.println("Unexpected or Empty Data Array in Response: " + fullBody);
+						return;
+					}
+
+					// Validate "success" in response
+					boolean success = fullBody.optBoolean("success", false);
+					if (!success) {
+						System.out.println("Error: " + fullBody.optString("message", "Unknown error occurred."));
+						return;
+					}
+
+					// Extract the identifier from the response
+					JSONObject dataObject = fullBody.optJSONArray("data").optJSONObject(0);
+					if (dataObject != null && dataObject.has("identifier")) {
+						TEST_RUN_IDENTIFIER = dataObject.optString("identifier", "Unknown");
+						System.out.println("ATP Test Run Identifier: " + TEST_RUN_IDENTIFIER);
+					} else {
+						System.out.println("Expected 'identifier' key not found in Response: " + fullBody.toString());
+					}
+				}
 
 				if(type == "addTestLog") {
 					requestBody =  addTestLogProp();
